@@ -16,10 +16,14 @@ public class GameView {
     private JTextField inputField;
     private GameTableModel tableModel;
     private Game game;
+    private CellColorManager cellColorManager;
+    private List<List<Color>> cellColors;
 
     public GameView(Game game, JFrame frame) {
         this.game = game;
         this.frame = frame;
+        this.cellColorManager = new CellColorManager(game.getCurrentWord());
+        this.cellColors = new ArrayList<>();
         createAndShowGUI();
     }
 
@@ -40,7 +44,7 @@ public class GameView {
 
         // Create an empty table model
         tableModel = new GameTableModel(0, 5);
-        table = new JTable(tableModel);
+        table = new ColorTable(tableModel, cellColors);
 
         // Set row height
         table.setRowHeight(30);
@@ -52,7 +56,7 @@ public class GameView {
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(JLabel.CENTER);
         for (int i = 0; i < table.getColumnCount(); i++) {
-            table.getColumnModel().getColumn(i).setCellRenderer(new ColorRenderer());
+            table.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
         }
 
         // Set column width
@@ -79,14 +83,16 @@ public class GameView {
 
             // Create a new row with the user's input
             Object[] row = new Object[tableModel.getColumnCount()];
+            List<Color> rowColors = new ArrayList<>();
             for (int i = 0; i < userInput.length() && i < row.length; i++) {
-                char c = userInput.charAt(i);
-                Color color = (c == game.getCurrentWord().charAt(i)) ? Color.GREEN : Color.RED;
-                row[i] = new Cell(c, color);
+                row[i] = String.valueOf(userInput.charAt(i));
+                Color color = cellColorManager.getColor(userInput.charAt(i), i);
+                rowColors.add(color);
             }
 
             // Add the new row to the table model
             tableModel.addRow(row);
+            cellColors.add(rowColors);
 
             // Clear the input field
             inputField.setText("");
@@ -111,36 +117,46 @@ public class GameView {
         public GameTableModel(int rowCount, int columnCount) {
             super(rowCount, columnCount);
         }
-        @Override
-        public Class<?> getColumnClass(int columnIndex) {
-            return Cell.class;
+
+        public void addRow(Object[] rowData, String userInput) {
+            super.addRow(rowData);
+
+            List<Color> rowColors = new ArrayList<>();
+            for (int i = 0; i < userInput.length() && i < rowData.length; i++) {
+                Color color = cellColorManager.getColor(userInput.charAt(i), i);
+                rowColors.add(color);
+            }
+            colors.add(rowColors);
         }
+
     }
 
     class ColorRenderer extends DefaultTableCellRenderer {
-        @Override
-        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-            super.getTableCellRendererComponent(table, ((Cell)value).getValue(), isSelected, hasFocus, row, column);
-            setBackground(((Cell)value).getColor());
-            return this;
-        }
-    }
-
-    class Cell {
-        private char value;
         private Color color;
 
-        public Cell(char value, Color color) {
-            this.value = value;
+        public ColorRenderer(Color color) {
             this.color = color;
         }
 
-        public char getValue() {
-            return value;
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            setBackground(color);
+            return this;
+        }
+    }
+    class ColorTable extends JTable {
+        private List<List<Color>> colors;
+
+        public ColorTable(DefaultTableModel tableModel, List<List<Color>> colors) {
+            super(tableModel);
+            this.colors = colors;
         }
 
-        public Color getColor() {
-            return color;
+        @Override
+        public TableCellRenderer getCellRenderer(int row, int column) {
+            Color color = colors.get(row).get(column);
+            return new ColorRenderer(color);
         }
     }
 }
