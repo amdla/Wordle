@@ -1,19 +1,17 @@
 package org.example;
 
-// Press Shift twice to open the Search Everywhere dialog and type `show whitespaces`,
-// then press Enter. You can now see whitespace characters in your code.
+import javax.swing.*;
+
 public class Main {
     public static void main(String[] args) {
-        // Press Alt+Enter with your caret at the highlighted text to see how
-        // IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
-
-        // Press Shift+F10 or click the green arrow button in the gutter to run the code.
-        for (int i = 1; i <= 5; i++) {
-
-            // Press Shift+F9 to start debugging your code. We have set one breakpoint
-            // for you, but you can always add more by pressing Ctrl+F8.
-            System.out.println("i = " + i);
-        }
+        SwingUtilities.invokeLater(() -> {
+            JFrame frame = new JFrame("Wordle");
+            Game game = new Game(); // Create the Game instance first
+            GameView gameView = new GameView(game, frame); // Pass the Game instance to the GameView constructor
+            JPanel panel = gameView.createAndShowGUI(); // Initialize the GameView and get the main panel
+            frame.add(panel); // Add the main panel to the frame
+            frame.pack(); // Adjust the frame size to fit the preferred size of its components
+            frame.setVisible(true); // Set the JFrame visibility to true
+        });
     }
 }
