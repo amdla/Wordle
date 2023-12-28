@@ -11,13 +11,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GameView {
-    private JFrame frame;
-    private JTable table;
+    public static final int COLUMN_COUNT = 5;
+    private final JFrame frame;
     private JTextField inputField;
     private GameTableModel tableModel;
-    private Game game;
+    private final Game game;
     private CellColorManager cellColorManager;
-    private List<List<Color>> cellColors;
+    private final List<List<Color>> cellColors;
 
     public GameView(Game game, JFrame frame) {
         this.game = game;
@@ -42,14 +42,8 @@ public class GameView {
     public void disableInput() {
         inputField.setEnabled(false);
     }
-
-    public JPanel createAndShowGUI() {
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Add some padding
-
-        // Create an empty table model
-        tableModel = new GameTableModel(0, 5);
-        table = new ColorTable(tableModel, cellColors);
+    private JTable createTable() {
+        JTable table = new ColorTable(tableModel, cellColors);
 
         // Set row height
         table.setRowHeight(30);
@@ -72,6 +66,16 @@ public class GameView {
         // Increase font size
         table.setFont(new Font("Serif", Font.PLAIN, 24));
 
+        return table;
+    }
+    public JPanel createAndShowGUI() {
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Add some padding
+
+        // Create an empty table model
+        tableModel = new GameTableModel(0, COLUMN_COUNT);
+        JTable table = createTable();
+
         // Create input field
         inputField = new JTextField("Guess a word");
         inputField.addFocusListener(new FocusAdapter() {
@@ -85,7 +89,7 @@ public class GameView {
         inputField.addActionListener(e -> {
             String userInput = inputField.getText();
 
-            if (!game.isActualWord(userInput)) {
+            if (game.isNotWord(userInput)) {
                 JOptionPane.showMessageDialog(null, "The input is not an actual word.");
                 return;
             }
