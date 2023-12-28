@@ -1,8 +1,5 @@
 package org.example;
 
-import javax.swing.*;
-
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -13,9 +10,10 @@ public class Game {
     private String currentWord;
     private final List<String> guesses;
     private GameState gameState;
-    private final List<String> words;
-    private GameView gameView;
     private CellColorManager cellColorManager;
+    private final List<String> words;
+    private DialogDisplayer dialogDisplayer;
+    private GameView gameView;
 
     public GameState getGameState() {
         return gameState;
@@ -32,7 +30,11 @@ public class Game {
         this.guesses = new ArrayList<>();
         this.currentWord = getRandomWord();
         this.gameState = GameState.LOST;
+        this.dialogDisplayer = new DialogDisplayer();
         this.cellColorManager = new CellColorManager(currentWord);
+    }
+    public void setDialogDisplayer(DialogDisplayer dialogDisplayer) {
+        this.dialogDisplayer = dialogDisplayer;
     }
 
     public void setGameView(GameView gameView) {
@@ -45,7 +47,7 @@ public class Game {
 
     public void guess(String guess) {
         if (isNotWord(guess)) {
-            JOptionPane.showMessageDialog(null, "The input is not an actual word. uwu");
+            dialogDisplayer.showMessageDialog(null, "The input is not an actual word.");
             return;
         }
 
@@ -53,11 +55,11 @@ public class Game {
 
         if (guess.equals(currentWord)) {
             gameState = GameState.WON;
-            JOptionPane.showMessageDialog(null, "Congratulations, you have won!");
+            dialogDisplayer.showMessageDialog(null, "Congratulations, you have won!");
             gameView.disableInput();
         } else if (guesses.size() == MAX_GUESSES) {
             gameState = GameState.LOST;
-            JOptionPane.showMessageDialog(null, "Sorry, you have lost. The word was: " + currentWord);
+            dialogDisplayer.showMessageDialog(null, "Sorry, you have lost. The word was: " + currentWord);
             gameView.disableInput();
         } else {
             if (gameView != null) {
@@ -65,10 +67,12 @@ public class Game {
             }
         }
     }
-
     public void reset() {
         guesses.clear();
-        currentWord = getRandomWord();
+        String oldWord = currentWord;
+        do {
+            currentWord = getRandomWord();
+        } while (currentWord.equals(oldWord));
         gameState = GameState.LOST;
         cellColorManager = new CellColorManager(currentWord);
         gameView.setCellColorManager(cellColorManager);
@@ -83,5 +87,7 @@ public class Game {
     public String getCurrentWord() {
         return currentWord;
     }
-
+    public void setCurrentWord(String currentWord) {
+        this.currentWord = currentWord;
+    }
 }

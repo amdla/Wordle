@@ -15,6 +15,7 @@ public class GameView {
     private final JFrame frame;
     private JTextField inputField;
     private GameTableModel tableModel;
+
     private final Game game;
     private CellColorManager cellColorManager;
     private final List<List<Color>> cellColors;
@@ -36,34 +37,27 @@ public class GameView {
                 break;
         }
     }
-    public void setCellColorManager(CellColorManager cellColorManager) {
-        this.cellColorManager = cellColorManager;
-    }
+
     public void disableInput() {
         inputField.setEnabled(false);
     }
     private JTable createTable() {
         JTable table = new ColorTable(tableModel, cellColors);
 
-        // Set row height
         table.setRowHeight(30);
 
-        // Remove column headers
         table.setTableHeader(null);
 
-        // Center text in each cell
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(JLabel.CENTER);
         for (int i = 0; i < table.getColumnCount(); i++) {
             table.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
         }
 
-        // Set column width
         for (int i = 0; i < table.getColumnCount(); i++) {
             table.getColumnModel().getColumn(i).setPreferredWidth(50);
         }
 
-        // Increase font size
         table.setFont(new Font("Serif", Font.PLAIN, 24));
 
         return table;
@@ -72,17 +66,22 @@ public class GameView {
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Add some padding
 
-        // Create an empty table model
         tableModel = new GameTableModel(0, COLUMN_COUNT);
         JTable table = createTable();
 
-        // Create input field
         inputField = new JTextField("Guess a word");
         inputField.addFocusListener(new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent e) {
                 if (inputField.getText().equals("Guess a word")) {
                     inputField.setText("");
+                }
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (inputField.getText().isEmpty()) {
+                    inputField.setText("Guess a word");
                 }
             }
         });
@@ -119,8 +118,6 @@ public class GameView {
             inputField.setText("");
         });
 
-        JLabel wordLabel = new JLabel(game.getCurrentWord());
-        wordLabel.setHorizontalAlignment(JLabel.CENTER);
 
         JButton resetButton = new JButton("Reset");
         resetButton.addActionListener(e -> {
@@ -137,10 +134,12 @@ public class GameView {
 
         mainPanel.add(inputField, BorderLayout.NORTH);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 10)), BorderLayout.CENTER);
-        mainPanel.add(wordLabel, BorderLayout.CENTER);
         mainPanel.add(bottomPanel, BorderLayout.SOUTH);
 
         return mainPanel;
+    }
+    public void setCellColorManager(CellColorManager cellColorManager) {
+        this.cellColorManager = cellColorManager;
     }
 
 static class GameTableModel extends DefaultTableModel {
