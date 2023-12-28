@@ -1,5 +1,7 @@
 package org.example;
 
+import javax.swing.*;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,6 +17,7 @@ public class Game {
     private GameState gameState;
     private List<String> words;
     private GameView gameView;
+    private CellColorManager cellColorManager;
 
     public GameState getGameState() {
         return gameState;
@@ -29,27 +32,47 @@ public class Game {
         this.guesses = new ArrayList<>();
         this.words = loadWords();
         this.currentWord = getRandomWord();
+        this.gameState = GameState.LOST;
+        this.cellColorManager = new CellColorManager(currentWord);
     }
 
     public void setGameView(GameView gameView) {
         this.gameView = gameView;
     }
 
+    public boolean isActualWord(String guess) {
+        return words.contains(guess);
+    }
+
     public void guess(String guess) {
+        if (!isActualWord(guess)) {
+            JOptionPane.showMessageDialog(null, "The input is not an actual word. uwu");
+            return;
+        }
+
         guesses.add(guess);
 
         if (guess.equals(currentWord)) {
             gameState = GameState.WON;
-        } else if (guesses.size() == 5) {
+            JOptionPane.showMessageDialog(null, "Congratulations, you have won!");
+            gameView.disableInput();
+        } else if (guesses.size() == 7) {
             gameState = GameState.LOST;
+            JOptionPane.showMessageDialog(null, "Sorry, you have lost. The word was: " + currentWord);
+            gameView.disableInput();
+        } else {
+            if (gameView != null) {
+                gameView.update();
+            }
         }
-
-        gameView.update();
     }
 
     public void reset() {
         guesses.clear();
         currentWord = getRandomWord();
+        gameState = GameState.LOST;
+        cellColorManager = new CellColorManager(currentWord);
+        gameView.setCellColorManager(cellColorManager);
         gameView.update();
     }
 

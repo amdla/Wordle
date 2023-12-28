@@ -5,8 +5,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CellColorManager {
-    private String word;
+    private final String word;
     private List<Letter> letters;
+    private int[] numApps;
+    private int[] greenApps;
 
     public CellColorManager(String word) {
         this.word = word;
@@ -14,33 +16,38 @@ public class CellColorManager {
     }
     public void reset() {
         this.letters = new ArrayList<>();
+        numApps = new int[26];
+        greenApps = new int[26];
         for (char c : word.toCharArray()) {
             Letter letter = findLetter(c);
             if (letter == null) {
                 letters.add(new Letter(c));
-            } else {
-                letter.incrementCount();
             }
+            numApps[c - 'a']++;
         }
     }
 
-    public Color getColor(char c, int index) {
-        if (index < word.length() && word.charAt(index) == c) {
-            return Color.GREEN;
+    public Color getColor(char c, int index, boolean secondPass, String wordToGuess) {
+        if (!secondPass) {
+            if (index < wordToGuess.length() && wordToGuess.charAt(index) == c) {
+                numApps[c - 'a']--;
+                greenApps[c - 'a']++;
+                return Color.GREEN;
+            }
         } else {
-            Letter letter = findLetter(c);
-            if (letter != null && letter.getCount() > 0) {
-                letter.decrementCount();
+            if (numApps[c - 'a'] > 0) {
+                numApps[c - 'a']--;
                 return Color.YELLOW;
-            } else {
-                return Color.RED;
             }
         }
+
+        // Default color if none of the above conditions are met
+        return Color.RED;
     }
 
     private Letter findLetter(char c) {
         for (Letter letter : letters) {
-            if (letter.getValue() == c) {
+            if (letter.value() == c) {
                 return letter;
             }
         }
@@ -48,28 +55,4 @@ public class CellColorManager {
     }
 }
 
-class Letter {
-    private char value;
-    private int count;
-
-    public Letter(char value) {
-        this.value = value;
-        this.count = 1;
-    }
-
-    public char getValue() {
-        return value;
-    }
-
-    public int getCount() {
-        return count;
-    }
-
-    public void incrementCount() {
-        count++;
-    }
-
-    public void decrementCount() {
-        count--;
-    }
-}
+record Letter(char value) {}

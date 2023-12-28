@@ -33,9 +33,14 @@ public class GameView {
                 JOptionPane.showMessageDialog(frame, "Congratulations, you have won!");
                 break;
             case LOST:
-                JOptionPane.showMessageDialog(frame, "Sorry, you have lost. The word was: " + game.getCurrentWord());
                 break;
         }
+    }
+    public void setCellColorManager(CellColorManager cellColorManager) {
+        this.cellColorManager = cellColorManager;
+    }
+    public void disableInput() {
+        inputField.setEnabled(false);
     }
 
     public JPanel createAndShowGUI() {
@@ -78,61 +83,70 @@ public class GameView {
             }
         });
         inputField.addActionListener(e -> {
-            // Get user's input
             String userInput = inputField.getText();
 
-            // Create a new row with the user's input
+            if (!game.isActualWord(userInput)) {
+                JOptionPane.showMessageDialog(null, "The input is not an actual word.");
+                return;
+            }
+
+            cellColorManager.reset();
+
             Object[] row = new Object[tableModel.getColumnCount()];
             List<Color> rowColors = new ArrayList<>();
+
             for (int i = 0; i < userInput.length() && i < row.length; i++) {
                 row[i] = String.valueOf(userInput.charAt(i));
-                Color color = cellColorManager.getColor(userInput.charAt(i), i);
+                Color color = cellColorManager.getColor(userInput.charAt(i), i, false, game.getCurrentWord());
                 rowColors.add(color);
             }
 
-            // Add the new row to the table model
+            for (int i = 0; i < userInput.length() && i < row.length; i++) {
+                if (rowColors.get(i) == Color.RED) {
+                    Color color = cellColorManager.getColor(userInput.charAt(i), i, true, game.getCurrentWord());
+                    rowColors.set(i, color);
+                }
+            }
+
             tableModel.addRow(row);
             cellColors.add(rowColors);
+            game.guess(userInput);
 
-            // Clear the input field
             inputField.setText("");
         });
 
-        // Create label to show the word to guess
         JLabel wordLabel = new JLabel(game.getCurrentWord());
         wordLabel.setHorizontalAlignment(JLabel.CENTER);
 
-        // Add input field, word label and table to the main panel
+        JButton resetButton = new JButton("Reset");
+        resetButton.addActionListener(e -> {
+            game.reset();
+            inputField.setEnabled(true);
+            inputField.setText("");
+            cellColors.clear();
+            tableModel.setRowCount(0);
+        });
+
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+        bottomPanel.add(new JScrollPane(table), BorderLayout.CENTER);
+        bottomPanel.add(resetButton, BorderLayout.SOUTH);
+
         mainPanel.add(inputField, BorderLayout.NORTH);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 10)), BorderLayout.CENTER); // Add a gap
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 10)), BorderLayout.CENTER);
         mainPanel.add(wordLabel, BorderLayout.CENTER);
-        mainPanel.add(new JScrollPane(table), BorderLayout.SOUTH);
+        mainPanel.add(bottomPanel, BorderLayout.SOUTH);
 
         return mainPanel;
     }
 
-    class GameTableModel extends DefaultTableModel {
-        private List<List<Color>> colors = new ArrayList<>();
-
+static class GameTableModel extends DefaultTableModel {
         public GameTableModel(int rowCount, int columnCount) {
             super(rowCount, columnCount);
         }
-
-        public void addRow(Object[] rowData, String userInput) {
-            super.addRow(rowData);
-
-            List<Color> rowColors = new ArrayList<>();
-            for (int i = 0; i < userInput.length() && i < rowData.length; i++) {
-                Color color = cellColorManager.getColor(userInput.charAt(i), i);
-                rowColors.add(color);
-            }
-            colors.add(rowColors);
-        }
-
     }
 
-    class ColorRenderer extends DefaultTableCellRenderer {
-        private Color color;
+    static class ColorRenderer extends DefaultTableCellRenderer {
+        private final Color color;
 
         public ColorRenderer(Color color) {
             this.color = color;
@@ -145,8 +159,9 @@ public class GameView {
             return this;
         }
     }
-    class ColorTable extends JTable {
-        private List<List<Color>> colors;
+
+    static class ColorTable extends JTable {
+        private final List<List<Color>> colors;
 
         public ColorTable(DefaultTableModel tableModel, List<List<Color>> colors) {
             super(tableModel);
@@ -155,8 +170,12 @@ public class GameView {
 
         @Override
         public TableCellRenderer getCellRenderer(int row, int column) {
-            Color color = colors.get(row).get(column);
-            return new ColorRenderer(color);
+            if (row < colors.size() && column < colors.get(row).size()) {
+                Color color = colors.get(row).get(column);
+                return new ColorRenderer(color);
+            } else {
+                return super.getCellRenderer(row, column);
+            }
         }
     }
 }
