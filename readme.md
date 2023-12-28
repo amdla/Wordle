@@ -1,3 +1,9 @@
+# Hey, you can download just the Wordle.exe file and try it out!
+
+
+
+
+
 # Wordle Game Documentation
 
 ## Table of Contents
