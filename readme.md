@@ -1,4 +1,6 @@
-# Hey, you can download just the Wordle.exe file and try it out!
+# Hey, you can download just the Wordle.exe file and try it out yourself!
+
+## Required java version 17+
 
 
 
