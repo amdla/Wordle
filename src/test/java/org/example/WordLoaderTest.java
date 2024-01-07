@@ -16,7 +16,7 @@ class WordLoaderTest {
     }
 
     @Test
-    void testLoadWords() {
+    void shouldCorrectlyLoadWords() {
         List<String> words = wordLoader.loadWords();
         assertFalse(words.isEmpty());
     }

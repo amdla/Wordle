@@ -41,20 +41,18 @@ public class GameView {
     public void disableInput() {
         inputField.setEnabled(false);
     }
+
     private JTable createTable() {
         JTable table = new ColorTable(tableModel, cellColors);
 
         table.setRowHeight(30);
-
         table.setTableHeader(null);
 
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(JLabel.CENTER);
-        for (int i = 0; i < table.getColumnCount(); i++) {
-            table.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
-        }
 
         for (int i = 0; i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
             table.getColumnModel().getColumn(i).setPreferredWidth(50);
         }
 
@@ -62,13 +60,34 @@ public class GameView {
 
         return table;
     }
+
     public JPanel createAndShowGUI() {
+        return createMainPanel();
+    }
+
+    private JPanel createMainPanel() {
         JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Add some padding
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         tableModel = new GameTableModel(0, COLUMN_COUNT);
         JTable table = createTable();
 
+        setupInputField();
+
+        inputField.addActionListener(e -> handleInput());
+
+        JButton resetButton = createResetButton();
+
+        JPanel bottomPanel = createBottomPanel(table, resetButton);
+
+        mainPanel.add(inputField, BorderLayout.NORTH);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 10)), BorderLayout.CENTER);
+        mainPanel.add(bottomPanel, BorderLayout.SOUTH);
+
+        return mainPanel;
+    }
+
+    private void setupInputField() {
         inputField = new JTextField("Guess a word");
         inputField.addFocusListener(new FocusAdapter() {
             @Override
@@ -85,64 +104,69 @@ public class GameView {
                 }
             }
         });
-        inputField.addActionListener(e -> {
-            String userInput = inputField.getText();
 
-            if (game.isNotWord(userInput)) {
-                JOptionPane.showMessageDialog(null, "The input is not an actual word.");
-                return;
+    }
+
+    private void handleInput() {
+        String userInput = inputField.getText();
+        userInput = userInput.toLowerCase();
+
+        if (game.isNotWord(userInput)) {
+            JOptionPane.showMessageDialog(null, "The input is not an actual word.");
+            return;
+        }
+
+        cellColorManager.reset();
+
+        Object[] row = new Object[tableModel.getColumnCount()];
+        List<Color> rowColors = new ArrayList<>();
+
+        for (int i = 0; i < userInput.length() && i < row.length; i++) {
+            row[i] = String.valueOf(userInput.charAt(i));
+            Color color = cellColorManager.getColor(userInput.charAt(i), i, false, game.getCurrentWord());
+            rowColors.add(color);
+        }
+
+        for (int i = 0; i < userInput.length() && i < row.length; i++) {
+            if (rowColors.get(i) == Color.RED) {
+                Color color = cellColorManager.getColor(userInput.charAt(i), i, true, game.getCurrentWord());
+                rowColors.set(i, color);
             }
+        }
 
-            cellColorManager.reset();
+        tableModel.addRow(row);
+        cellColors.add(rowColors);
+        game.guess(userInput);
 
-            Object[] row = new Object[tableModel.getColumnCount()];
-            List<Color> rowColors = new ArrayList<>();
+        inputField.setText("");
+    }
 
-            for (int i = 0; i < userInput.length() && i < row.length; i++) {
-                row[i] = String.valueOf(userInput.charAt(i));
-                Color color = cellColorManager.getColor(userInput.charAt(i), i, false, game.getCurrentWord());
-                rowColors.add(color);
-            }
-
-            for (int i = 0; i < userInput.length() && i < row.length; i++) {
-                if (rowColors.get(i) == Color.RED) {
-                    Color color = cellColorManager.getColor(userInput.charAt(i), i, true, game.getCurrentWord());
-                    rowColors.set(i, color);
-                }
-            }
-
-            tableModel.addRow(row);
-            cellColors.add(rowColors);
-            game.guess(userInput);
-
-            inputField.setText("");
-        });
-
-
+    private JButton createResetButton() {
         JButton resetButton = new JButton("Reset");
-        resetButton.addActionListener(e -> {
-            game.reset();
-            inputField.setEnabled(true);
-            inputField.setText("");
-            cellColors.clear();
-            tableModel.setRowCount(0);
-        });
+        resetButton.addActionListener(e -> resetGame());
+        return resetButton;
+    }
 
+    private void resetGame() {
+        game.reset();
+        inputField.setEnabled(true);
+        inputField.setText("");
+        cellColors.clear();
+        tableModel.setRowCount(0);
+    }
+
+    private JPanel createBottomPanel(JTable table, JButton resetButton) {
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.add(new JScrollPane(table), BorderLayout.CENTER);
         bottomPanel.add(resetButton, BorderLayout.SOUTH);
-
-        mainPanel.add(inputField, BorderLayout.NORTH);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 10)), BorderLayout.CENTER);
-        mainPanel.add(bottomPanel, BorderLayout.SOUTH);
-
-        return mainPanel;
+        return bottomPanel;
     }
+
     public void setCellColorManager(CellColorManager cellColorManager) {
         this.cellColorManager = cellColorManager;
     }
 
-static class GameTableModel extends DefaultTableModel {
+    static class GameTableModel extends DefaultTableModel {
         public GameTableModel(int rowCount, int columnCount) {
             super(rowCount, columnCount);
         }

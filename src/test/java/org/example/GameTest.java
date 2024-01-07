@@ -25,38 +25,38 @@ class GameTest {
     }
 
     @Test
-    void testIsNotWord() {
+    void shouldCheckIfIsNotWord() {
         assertTrue(game.isNotWord("xxxxx"));
         assertFalse(game.isNotWord("river"));
     }
     @Test
-    void testReset() {
+    void shouldCorrectlyReset() {
         game.reset();
         assertEquals(Game.GameState.LOST, game.getGameState());
         assertNotEquals("xxxxx", game.getCurrentWord());
     }
     @Test
-    void testGuess() {
+    void shouldHandleCorrectGuess() {
         game.setCurrentWord("river");
         game.guess("river");
         assertEquals(Game.GameState.WON, game.getGameState());
     }
     @Test
-    void testGuessWithInvalidWord() {
+    void shouldHandleInvalidWord() {
         game.setCurrentWord("river");
         game.guess("xxxxx");
         assertEquals(Game.GameState.LOST, game.getGameState());
     }
 
     @Test
-    void testGuessWithValidWordButNotTheCurrentWord() {
+    void shouldHandleInvalidGuess() {
         game.setCurrentWord("river");
         game.guess("ocean");
         assertEquals(Game.GameState.LOST, game.getGameState());
     }
 
     @Test
-    void testGameStateAfterMaxGuesses() {
+    void shouldHandleLoseLoseByTries() {
         game.setCurrentWord("river");
         for (int i = 0; i < Game.MAX_GUESSES; i++) {
             game.guess("punch");

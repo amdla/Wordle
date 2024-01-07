@@ -6,6 +6,10 @@ public class CellColorManager {
     private final String word;
     private int[] numApps;
 
+    public int[] getNumApps() {
+        return numApps;
+    }
+
     public CellColorManager(String word) {
         this.word = word;
         reset();
@@ -30,7 +34,6 @@ public class CellColorManager {
                 return Color.YELLOW;
             }
         }
-
         return Color.RED;
     }
 }
