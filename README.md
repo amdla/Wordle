@@ -86,6 +86,10 @@ The `GameTest` class contains unit tests for the `Game` class. It tests the game
 
 The `WordLoaderTest` class contains unit tests for the `WordLoader` class. It tests the loading of words from a file.
 
+### CellColorManagerTest
+
+The `CellColorManagerTest` class contains unit tests for the `CellColorManager` class. It tests if coloring works correctly.
+
 ## Conclusion
 
 This project is a simple implementation of the Wordle game in Java. It demonstrates the use of several key concepts in Java, including object-oriented programming, file I/O, and unit testing.
