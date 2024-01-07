@@ -52,6 +52,7 @@ The project follows a standard Maven project structure:
 │   │   │   │   ├── example
 │   │   │   │   │   ├── GameTest.java
 │   │   │   │   │   ├── WordLoaderTest.java
+│   │   │   │   │   ├──CellColorManagerTest
 ├── .gitignore
 ├── pom.xml
 └── README.md
